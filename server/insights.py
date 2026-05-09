@@ -9,7 +9,14 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 ROOT = Path(__file__).parent.parent
+
+load_dotenv(ROOT / ".env")
+
+MIN_QUESTION_LENGTH = int(os.environ.get("MIN_QUESTION_LENGTH", "8"))
+ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-5")
 
 QUESTION_KEYWORDS = [
     "请问", "问下", "问一下", "想问", "怎么", "如何", "为什么", "为啥",
@@ -31,27 +38,6 @@ STRATEGY_TEMPLATES = {
     "资讯分享群": "这是一个资讯分享群，重点关注有价值的行业资讯、工具推荐、经验分享。",
     "通用群": "这是一个通用讨论群，提取有价值的知识、经验分享和问答内容。",
 }
-
-
-def _load_config():
-    config_path = ROOT / "config.sh"
-    if not config_path.exists():
-        return
-    for line in config_path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        m = re.match(r'^(?:export\s+)?(\w+)="?([^"#${]*)"?$', line)
-        if m:
-            key, val = m.group(1), m.group(2).strip().strip('"')
-            if key not in os.environ and val:
-                os.environ[key] = val
-
-
-_load_config()
-
-MIN_QUESTION_LENGTH = int(os.environ.get("MIN_QUESTION_LENGTH", "8"))
-ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-opus-4-5")
 
 
 # ── 规则过滤 ──────────────────────────────────────────────────────────────────
@@ -230,6 +216,76 @@ def extract_insights(
 
     insights = [i for i in insights if not _is_sensitive(i.get("title", "") + i.get("content", ""))]
     return insights, len(candidates)
+
+
+# ── 策略转换 ──────────────────────────────────────────────────────────────────
+
+_STRATEGY_LABELS = list(STRATEGY_TEMPLATES.keys())
+
+
+def derive_strategy_from_feedback(
+    feedback: str,
+    current_label: str | None,
+    current_extra: str | None,
+) -> tuple[str | None, str | None]:
+    """
+    用 LLM 分析累积 feedback，返回 (new_label, new_extra)。
+    失败时返回 (None, None)，调用方保持原策略不变。
+    """
+    if not feedback or not feedback.strip():
+        return None, None
+
+    labels_str = "、".join(_STRATEGY_LABELS)
+    prompt = (
+        "你是微信群内容提取策略助手。根据用户对提取结果的历史反馈，推断最合适的群策略配置。\n\n"
+        f"## 可选策略标签\n{labels_str}\n\n"
+        f"## 当前策略\n标签：{current_label or '（未设置）'}\n补充说明：{current_extra or '（无）'}\n\n"
+        f"## 用户历史反馈\n{feedback.strip()}\n\n"
+        '## 任务\n分析反馈，输出最合适的策略配置。只输出 JSON，无其他文字：\n'
+        '{"label": "策略标签（从可选标签中选一个，或 null 保持不变）", '
+        '"extra": "补充说明（简短描述群的特点和提取偏好，或 null 保持不变）"}'
+    )
+
+    text = None
+    try:
+        result = subprocess.run(
+            ["claude", "-p", prompt],
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            text = result.stdout.strip()
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError):
+        pass
+
+    if text is None:
+        try:
+            import anthropic
+            client = anthropic.Anthropic()
+            resp = client.messages.create(
+                model=ANTHROPIC_MODEL,
+                max_tokens=256,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            text = resp.content[0].text.strip()
+        except Exception:
+            pass
+
+    if text is None:
+        return None, None
+
+    m = re.search(r'\{[^{}]*\}', text, re.DOTALL)
+    if not m:
+        return None, None
+    try:
+        data = json.loads(m.group(0))
+    except json.JSONDecodeError:
+        return None, None
+
+    label = data.get("label") or None
+    extra = data.get("extra") or None
+    if label and label not in _STRATEGY_LABELS:
+        label = None
+    return label, extra
 
 
 # ── 推送 KnowWind ─────────────────────────────────────────────────────────────

@@ -5,7 +5,6 @@ wx-still 后台服务 — FastAPI，监听 localhost:8001
 """
 
 import os
-import re
 import threading
 import time
 from contextlib import asynccontextmanager
@@ -13,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 import httpx
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -23,25 +23,7 @@ from server import insights as insights_mod
 
 ROOT = Path(__file__).parent.parent
 
-
-# ── 从 config.sh 加载配置（env 变量优先）────────────────────────────────────
-
-def _load_config_sh():
-    config_path = ROOT / "config.sh"
-    if not config_path.exists():
-        return
-    for line in config_path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        # 只解析 KEY="value" 或 KEY=value，跳过 bash 变量展开
-        m = re.match(r'^(?:export\s+)?(\w+)="?([^"#${]*)"?$', line)
-        if m:
-            key, val = m.group(1), m.group(2).strip().strip('"')
-            if key not in os.environ and val:
-                os.environ[key] = val
-
-_load_config_sh()
+load_dotenv(ROOT / ".env")
 
 WECHAT_DECRYPT_URL = os.environ.get("WECHAT_DECRYPT_URL", "http://localhost:5678").rstrip("/")
 GROUP_KEYWORDS = [k.strip() for k in os.environ.get("GROUP_KEYWORDS", "").split(",") if k.strip()]
@@ -262,7 +244,21 @@ def receive_feedback(body: FeedbackBody):
         raise HTTPException(status_code=404, detail="群不存在")
     line = f"[{datetime.now().strftime('%Y-%m-%d')}] {body.feedback}"
     db.append_feedback(body.group_id, line)
-    return {"message": "反馈已记录"}
+
+    updated_group = db.get_group(body.group_id)
+    new_label, new_extra = insights_mod.derive_strategy_from_feedback(
+        updated_group.get("strategy_feedback") or "",
+        updated_group.get("strategy_label"),
+        updated_group.get("strategy_extra"),
+    )
+    if new_label is not None or new_extra is not None:
+        db.update_strategy(
+            body.group_id,
+            new_label if new_label is not None else updated_group.get("strategy_label"),
+            new_extra if new_extra is not None else updated_group.get("strategy_extra"),
+        )
+
+    return {"message": "反馈已记录", "group": db.get_group(body.group_id)}
 
 
 @app.get("/logs")
