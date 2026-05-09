@@ -232,33 +232,46 @@ def collect_status():
 
 
 class FeedbackBody(BaseModel):
-    group_id: str
+    group_id: str | None = None
     insight_id: str | None = None
-    feedback: str
+    feedback: str | None = None
+    content: str | None = None
+
+    @property
+    def text(self) -> str:
+        return self.feedback or self.content or ""
 
 
 @app.post("/feedback")
 def receive_feedback(body: FeedbackBody):
-    group = db.get_group(body.group_id)
-    if group is None:
-        raise HTTPException(status_code=404, detail="群不存在")
-    line = f"[{datetime.now().strftime('%Y-%m-%d')}] {body.feedback}"
-    db.append_feedback(body.group_id, line)
+    text = body.text
+    if not text:
+        raise HTTPException(status_code=422, detail="缺少 feedback 或 content 字段")
 
-    updated_group = db.get_group(body.group_id)
-    new_label, new_extra = insights_mod.derive_strategy_from_feedback(
-        updated_group.get("strategy_feedback") or "",
-        updated_group.get("strategy_label"),
-        updated_group.get("strategy_extra"),
-    )
-    if new_label is not None or new_extra is not None:
-        db.update_strategy(
-            body.group_id,
-            new_label if new_label is not None else updated_group.get("strategy_label"),
-            new_extra if new_extra is not None else updated_group.get("strategy_extra"),
+    # 如果有 group_id，记录到对应群的策略反馈
+    strategy_changed = False
+    if body.group_id:
+        group = db.get_group(body.group_id)
+        if group is None:
+            raise HTTPException(status_code=404, detail="群不存在")
+        line = f"[{datetime.now().strftime('%Y-%m-%d')}] {text}"
+        db.append_feedback(body.group_id, line)
+
+        updated_group = db.get_group(body.group_id)
+        new_label, new_extra = insights_mod.derive_strategy_from_feedback(
+            updated_group.get("strategy_feedback") or "",
+            updated_group.get("strategy_label"),
+            updated_group.get("strategy_extra"),
         )
+        if new_label is not None or new_extra is not None:
+            db.update_strategy(
+                body.group_id,
+                new_label if new_label is not None else updated_group.get("strategy_label"),
+                new_extra if new_extra is not None else updated_group.get("strategy_extra"),
+            )
+            strategy_changed = True
 
-    return {"message": "反馈已记录", "group": db.get_group(body.group_id)}
+    return {"message": "反馈已记录", "strategy_changed": strategy_changed, "group": db.get_group(body.group_id) if body.group_id else None}
 
 
 @app.get("/logs")
