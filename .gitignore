@@ -1,0 +1,35 @@
+# 敏感文件 - 绝对不提交
+~/.wx-cli/
+all_keys.json
+*.key
+*.pem
+
+# 个人配置（不提交，用 config.example.sh 作模板）
+config.sh
+
+# 临时文件（放在 /private/tmp，不在项目目录，但以防万一）
+/private/tmp/
+*.tmp
+
+# 微信消息原文（不保存到项目目录）
+wx_qa_export_*.json
+wx_qa_groups_*.json
+wechat_group_*.json
+wx_sessions_*.json
+wx_super_ai_*.json
+
+# 飞书 XML 模板临时文件
+lark_*.xml
+lark_*.md
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
