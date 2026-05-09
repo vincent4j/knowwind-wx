@@ -42,10 +42,14 @@ STRATEGY_TEMPLATES = {
 
 # ── 规则过滤 ──────────────────────────────────────────────────────────────────
 
+_TEXT_TYPES = {"text", "文本", "链接/文件"}
+_SKIP_TYPES = {"system", "emoji", "系统", "表情"}
+
+
 def _is_valid(msg: dict) -> bool:
     msg_type = (msg.get("type") or "").lower()
     content = msg.get("content") or ""
-    if msg_type in ("system", "emoji"):
+    if msg_type in _SKIP_TYPES:
         return False
     if any(kw in content for kw in FILTER_KEYWORDS):
         return False
@@ -53,9 +57,9 @@ def _is_valid(msg: dict) -> bool:
 
 
 def _is_candidate(msg: dict) -> bool:
-    msg_type = (msg.get("type") or "").lower()
+    msg_type = msg.get("type") or ""
     content = msg.get("content") or ""
-    if msg_type != "text":
+    if msg_type not in _TEXT_TYPES:
         return False
     if len(content.strip()) < MIN_QUESTION_LENGTH:
         return False

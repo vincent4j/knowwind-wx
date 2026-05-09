@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-05-09 - FastAPI 后台服务与 LLM 提取流水线（联调）
+- **任务：** 配置迁移、删旧脚本、feedback 策略转换、真实数据联调
+- **关键经验：**
+  - 集成第三方服务时，枚举字段值必须以实际 API 响应为准（curl 验证），不能假设格式
+  - 调试 pipeline 时，先隔离每一层（规则过滤 → LLM → 推送），逐层确认产出
+- **详见：** [worklog/2026-05-09-FastAPI后台服务与LLM提取流水线.md](worklog/2026-05-09-FastAPI后台服务与LLM提取流水线.md)
+
 ## 2026-05-09 - FastAPI 后台服务与 LLM 提取流水线
 - **任务：** 将 wx-still 改造为 KnowWind 插件服务（FastAPI + SQLite + Vue + LLM 提取）
 - **关键经验：**
