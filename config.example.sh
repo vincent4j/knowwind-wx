@@ -9,9 +9,9 @@
 # 飞书文档完整 URL
 FEISHU_DOC_URL="https://your-tenant.feishu.cn/docx/YOUR_DOC_ID"
 
-# wx-cli 可执行文件路径
-# 安装方式：cd /private/tmp/wx-cli-check && npm install @jackwener/wx-cli
-WX_CLI_PATH="/private/tmp/wx-cli-check/node_modules/.bin/wx"
+# wechat-decrypt 服务地址
+# 启动方式：cd /path/to/wechat-decrypt && sudo ./find_all_keys_macos && python3 main.py
+WECHAT_DECRYPT_URL="http://localhost:5678"
 
 # 目标微信群关键词（逗号分隔，群名包含任意一个即纳入）
 GROUP_KEYWORDS="你的群关键词1,你的群关键词2"
@@ -39,5 +39,5 @@ ANTHROPIC_MODEL="${ANTHROPIC_MODEL:-claude-opus-4-5}"
 FEISHU_DOC_ID="${FEISHU_DOC_URL##*/docx/}"
 
 # 导出所有配置变量，使 Python 子进程可以读取
-export FEISHU_DOC_URL FEISHU_DOC_ID WX_CLI_PATH GROUP_KEYWORDS
+export FEISHU_DOC_URL FEISHU_DOC_ID WECHAT_DECRYPT_URL GROUP_KEYWORDS
 export TMP_DIR SESSION_WINDOW ANSWER_WINDOW MIN_QUESTION_LENGTH ANTHROPIC_MODEL
