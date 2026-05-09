@@ -325,7 +325,7 @@ def push_insights(
             "extra": {"group_name": group_name, "group_id": group_id},
         }
         try:
-            resp = httpx.post(url, json=payload, headers=headers, timeout=10)
+            resp = httpx.post(url, json=[payload], headers=headers, timeout=10)
             if resp.status_code < 300:
                 pushed += 1
         except Exception:
