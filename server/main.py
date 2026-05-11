@@ -177,6 +177,11 @@ def info():
     }
 
 
+@app.get("/strategy-templates")
+def get_strategy_templates():
+    return insights_mod.STRATEGY_TEMPLATES
+
+
 @app.get("/groups")
 def get_groups():
     return db.list_groups()

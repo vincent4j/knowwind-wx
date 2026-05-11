@@ -212,6 +212,10 @@
       <option value="资讯分享群">资讯分享群</option>
       <option value="通用群">通用群</option>
     </select>
+    <div v-if="editing.strategy_label && strategyTemplates[editing.strategy_label]"
+      style="font-size:12px;color:#888;margin:-6px 0 10px;line-height:1.5">
+      {{ strategyTemplates[editing.strategy_label] }}
+    </div>
 
     <div class="label">自定义补充（告诉 AI 关注什么、过滤什么）</div>
     <textarea v-model="editing.strategy_extra"
@@ -294,7 +298,8 @@ createApp({
     const strategyError = ref("");
     const collectStatus = ref({ running: false, started_at: null, finished_at: null, error: null });
     const collectError  = ref("");
-    const logs          = ref([]);
+    const logs              = ref([]);
+    const strategyTemplates = ref({});
 
     let pollTimer = null;
 
@@ -313,6 +318,11 @@ createApp({
     async function loadStatus() {
       const res = await fetch(`${BASE}/collect/status`);
       collectStatus.value = await res.json();
+    }
+
+    async function loadStrategyTemplates() {
+      const res = await fetch(`${BASE}/strategy-templates`);
+      strategyTemplates.value = await res.json();
     }
 
     // ── 群操作 ────────────────────────────────────────────────────────────────
@@ -425,7 +435,7 @@ createApp({
     // ── 生命周期 ──────────────────────────────────────────────────────────────
 
     onMounted(async () => {
-      await Promise.all([loadGroups(), loadStatus(), loadLogs()]);
+      await Promise.all([loadGroups(), loadStatus(), loadLogs(), loadStrategyTemplates()]);
       if (collectStatus.value.running) startPolling();
     });
 
@@ -435,7 +445,7 @@ createApp({
 
     return {
       groups, editing, saving, syncing, strategyError,
-      collectStatus, collectError, logs,
+      collectStatus, collectError, logs, strategyTemplates,
       toggleGroup, openStrategy, saveStrategy, syncGroups,
       triggerCollect, fmtTs, fmtTime, groupName,
     };
