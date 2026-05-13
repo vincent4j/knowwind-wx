@@ -1,5 +1,5 @@
 """
-wx-still 后台服务 — FastAPI，监听 localhost:8001
+knowwind-wx 后台服务 — FastAPI，监听 localhost:8001
 
 启动：uvicorn server.main:app --host 127.0.0.1 --port 8001
 """
@@ -73,7 +73,7 @@ def _register_knowwind():
 
 # ── FastAPI 应用 ───────────────────────────────────────────────────────────────
 
-app = FastAPI(title="wx-still", lifespan=lifespan)
+app = FastAPI(title="knowwind-wx", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

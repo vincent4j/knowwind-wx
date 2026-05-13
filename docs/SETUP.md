@@ -1,4 +1,4 @@
-# wx-still 启动指南
+# knowwind-wx 启动指南
 
 ## 前置条件
 
@@ -8,7 +8,7 @@
 
 ## 启动顺序
 
-**必须按顺序启动：** KnowWind → wechat-decrypt → wx-still
+**必须按顺序启动：** KnowWind → wechat-decrypt → knowwind-wx
 
 ### 1. 启动 KnowWind
 
@@ -29,10 +29,10 @@ cd /Users/vincent4j/Tools/Source/wechat-decrypt
 - 解密数据库到 `decrypted2/` 目录
 - 实时监听新消息（WAL 增量 + SSE 推送）
 
-### 3. 启动 wx-still
+### 3. 启动 knowwind-wx
 
 ```bash
-cd /Users/vincent4j/Tools/Source/wx-still
+cd /Users/vincent4j/Tools/Source/knowwind-wx
 .venv/bin/python -m uvicorn server.main:app --host 127.0.0.1 --port 8001
 ```
 
@@ -46,7 +46,7 @@ curl http://localhost:8000/health
 curl http://localhost:5678/     # 返回 HTML 页面
 curl http://localhost:8001/health
 
-# wx-still 已注册到 KnowWind
+# knowwind-wx 已注册到 KnowWind
 curl http://localhost:8000/api/plugins
 # 应看到 name: "wechat" 的插件
 ```
@@ -90,7 +90,7 @@ sudo rm -rf /Users/vincent4j/Tools/Source/wechat-decrypt/decrypted
 ```bash
 # 找到占用端口的进程并杀掉
 lsof -ti:5678 | xargs kill -9   # wechat-decrypt
-lsof -ti:8001 | xargs kill -9   # wx-still
+lsof -ti:8001 | xargs kill -9   # knowwind-wx
 ```
 
 ### 缺少 Python 依赖
@@ -123,9 +123,9 @@ curl http://localhost:8001/logs?limit=3
 
 **候选关键词（触发提取的词）：** 请问、怎么、如何、为什么、能不能、有没有、报错、安装、登录、问题 等。群聊消息需要包含这些词才会进入提取流程。
 
-### 群没有出现在 wx-still 里
+### 群没有出现在 knowwind-wx 里
 
-wx-still 只同步名称匹配 `GROUP_KEYWORDS` 的群。检查 `.env`：
+knowwind-wx 只同步名称匹配 `GROUP_KEYWORDS` 的群。检查 `.env`：
 
 ```bash
 # 匹配所有群（不限关键词）
@@ -135,7 +135,7 @@ GROUP_KEYWORDS=
 GROUP_KEYWORDS=AI大航海,技术交流
 ```
 
-修改后需要重启 wx-still。
+修改后需要重启 knowwind-wx。
 
 ## 架构简图
 
@@ -146,7 +146,7 @@ GROUP_KEYWORDS=AI大航海,技术交流
 wechat-decrypt (:5678)
     │ 解密数据库 + 实时监听
     ▼
-wx-still (:8001)
+knowwind-wx (:8001)
     │ 规则过滤 → LLM 提取 → 推送
     ▼
 KnowWind (:8000)

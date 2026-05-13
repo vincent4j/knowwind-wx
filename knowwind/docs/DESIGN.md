@@ -21,14 +21,14 @@
 | 仓库 | 说明 |
 |------|------|
 | `knowwind` | 核心平台：数据库、Web UI、MCP Server、REST API |
-| `wx-still` | 微信数据源插件：采集、策略、清洗、推送 |
+| `knowwind-wx` | 微信数据源插件：采集、策略、清洗、推送 |
 
 **将来**：每个数据源一个独立仓库，按需安装
 
 | 仓库 | 说明 |
 |------|------|
 | `knowwind` | 核心平台（不变） |
-| `wx-still` | 微信插件（本地数据源） |
+| `knowwind-wx` | 微信插件（本地数据源） |
 | `knowwind-twitter` | Twitter 插件（云端数据源，KnowWind 直接采集） |
 | `knowwind-xiaohongshu` | 小红书插件（云端数据源） |
 | `knowwind-youtube` | YouTube 插件（云端数据源） |

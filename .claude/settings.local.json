@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/vincent4j/Tools/Source/wx-still/.venv/bin/python -m py_compile /Users/vincent4j/Tools/Source/wx-still/server/insights.py)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(python3 -m py_compile /Users/vincent4j/Tools/Source/wx-still/server/insights.py)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(python3 -m py_compile /Users/vincent4j/Tools/Source/wx-still/server/main.py)"
+    ]
+  }
+}

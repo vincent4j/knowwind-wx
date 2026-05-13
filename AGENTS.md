@@ -1,4 +1,4 @@
-# wx-still 操作规则手册
+# knowwind-wx 操作规则手册
 
 > 本文件是微信插件的完整规则手册。AI 每次操作前必须读这份文件。
 
@@ -6,7 +6,7 @@
 
 ## 项目定位
 
-`wx-still` 是 KnowWind 决策平台的微信数据源插件。
+`knowwind-wx` 是 KnowWind 决策平台的微信数据源插件。
 
 职责：从本机微信群采集消息 → 规则粗过滤 → LLM 精提取 → 推送给 KnowWind。
 
