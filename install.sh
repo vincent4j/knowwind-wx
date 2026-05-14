@@ -67,6 +67,16 @@ if [ "$OS" = "Darwin" ]; then
   fi
 fi
 
+# cc (macOS only, for compiling wechat-decrypt)
+if [ "$OS" = "Darwin" ]; then
+  if command -v cc &>/dev/null; then
+    ok "cc $(cc --version 2>&1 | head -1 | awk '{print $NF}')"
+  else
+    fail "未找到 cc — 请安装 Xcode Command Line Tools: xcode-select --install"
+    PREFLIGHT_ERRORS=$((PREFLIGHT_ERRORS + 1))
+  fi
+fi
+
 if [ "$PREFLIGHT_ERRORS" -gt 0 ]; then
   echo ""
   fail "发现 ${PREFLIGHT_ERRORS} 个问题，请解决后重新运行安装程序。"
@@ -124,11 +134,13 @@ fi
 # 编译 macOS 密钥扫描器（仅 macOS，需要 Xcode Command Line Tools）
 if [ "$OS" = "Darwin" ] && [ ! -f "$DECRYPT_DIR/find_all_keys_macos" ]; then
   info "编译 wechat-decrypt 密钥扫描器..."
-  if cc -O2 -o "$DECRYPT_DIR/find_all_keys_macos" "$DECRYPT_DIR/find_all_keys_macos.c" -framework Foundation 2>/dev/null; then
+  if cc -O2 -o "$DECRYPT_DIR/find_all_keys_macos" "$DECRYPT_DIR/find_all_keys_macos.c" -framework Foundation; then
     codesign -s - "$DECRYPT_DIR/find_all_keys_macos" 2>/dev/null || true
     ok "编译完成"
   else
-    warn "编译失败（缺少 Xcode Command Line Tools？），跳过密钥提取"
+    fail "编译失败 — 请确认已安装 Xcode Command Line Tools: xcode-select --install"
+    fail "安装后重新运行安装程序"
+    exit 1
   fi
 fi
 
