@@ -19,6 +19,7 @@ OS="$(uname -s)"
 ok()   { echo "  ✅ $1"; }
 info() { echo "  →  $1"; }
 warn() { echo "  ⚠️  $1"; }
+fail() { echo "  ❌ $1"; }
 hr()   { echo "─────────────────────────────────────────"; }
 
 echo ""
@@ -120,8 +121,10 @@ else
   git clone --quiet --recursive "$REPO_URL" "$INSTALL_DIR"
 fi
 
-info "创建Python 虚拟环境..."
-python3 -m venv "$VENV_DIR"
+if [ ! -f "$VENV_PY" ]; then
+  info "创建Python 虚拟环境..."
+  python3 -m venv "$VENV_DIR"
+fi
 info "安装 Python 依赖..."
 "$VENV_PIP" install --quiet --upgrade pip
 "$VENV_PIP" install --quiet httpx python-dotenv
@@ -242,7 +245,7 @@ chmod +x "\$DECRYPT_DIR/find_all_keys_macos"
 
 # 启动服务
 echo "→ 启动服务..."
-(cd "\$DECRYPT_DIR" && python3 main.py >/dev/null 2>&1 &)
+(cd "\$DECRYPT_DIR" && "${VENV_PY}" main.py >/dev/null 2>&1 &)
 sleep 2
 
 if curl -sf --max-time 3 http://localhost:5678/api/info >/dev/null 2>&1; then
@@ -273,7 +276,7 @@ if [ "$OS" = "Darwin" ] && [ "$SKIP_KEY_EXTRACT" = "0" ]; then
   fi
 
   info "启动服务..."
-  (cd "$DECRYPT_DIR" && python3 main.py >/dev/null 2>&1 &)
+  (cd "$DECRYPT_DIR" && "$VENV_PY" main.py >/dev/null 2>&1 &)
   sleep 2
 
   if curl -sf --max-time 3 "http://localhost:5678/api/info" >/dev/null 2>&1; then
