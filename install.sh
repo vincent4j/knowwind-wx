@@ -121,6 +121,17 @@ else
   git clone --quiet --recursive "$REPO_URL" "$INSTALL_DIR"
 fi
 
+# 编译 macOS 密钥扫描器（仅 macOS，需要 Xcode Command Line Tools）
+if [ "$OS" = "Darwin" ] && [ ! -f "$DECRYPT_DIR/find_all_keys_macos" ]; then
+  info "编译 wechat-decrypt 密钥扫描器..."
+  if cc -O2 -o "$DECRYPT_DIR/find_all_keys_macos" "$DECRYPT_DIR/find_all_keys_macos.c" -framework Foundation 2>/dev/null; then
+    codesign -s - "$DECRYPT_DIR/find_all_keys_macos" 2>/dev/null || true
+    ok "编译完成"
+  else
+    warn "编译失败（缺少 Xcode Command Line Tools？），跳过密钥提取"
+  fi
+fi
+
 if [ ! -f "$VENV_PY" ]; then
   info "创建Python 虚拟环境..."
   python3 -m venv "$VENV_DIR"
