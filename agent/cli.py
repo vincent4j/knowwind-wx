@@ -43,14 +43,14 @@ def cmd_bind(args):
 
     # 尝试从 wechat-decrypt 获取真实 wxid；失败则使用 mock
     decrypt_url = os.environ.get("WECHAT_DECRYPT_URL", "http://localhost:5678")
-    wxid, nickname = _detect_wechat(decrypt_url)
+    wxid, nickname, avatar_url = _detect_wechat(decrypt_url)
 
     print(f"正在绑定... wxid={wxid} nickname={nickname}")
 
     try:
         resp = httpx.post(
             f"{server}/api/wechat/bind",
-            json={"code": code, "wxid": wxid, "nickname": nickname},
+            json={"code": code, "wxid": wxid, "nickname": nickname, "avatar_url": avatar_url},
             timeout=10,
         )
     except Exception as e:
@@ -82,7 +82,7 @@ def cmd_bind(args):
     print(f"   配置已保存至 {cfg.CONFIG_PATH}")
 
 
-def _detect_wechat(decrypt_url: str) -> tuple[str, str]:
+def _detect_wechat(decrypt_url: str) -> tuple[str, str, str | None]:
     """尝试从 wechat-decrypt 获取当前登录微信的 wxid。失败时返回测试占位值。"""
     try:
         resp = httpx.get(f"{decrypt_url.rstrip('/')}/api/info", timeout=5)
@@ -90,15 +90,16 @@ def _detect_wechat(decrypt_url: str) -> tuple[str, str]:
             info = resp.json()
             wxid = info.get("wxid") or info.get("username") or ""
             nickname = info.get("nickname") or info.get("name") or ""
+            avatar_url = info.get("small_head_url") or info.get("avatar_url") or None
             if wxid:
-                return wxid, nickname
+                return wxid, nickname, avatar_url
     except Exception:
         pass
 
     # wechat-decrypt 未运行：使用 mock（供测试用）
     mock_id = f"mock_wxid_{uuid.uuid4().hex[:6]}"
     print("⚠️  wechat-decrypt 未运行，使用 mock wxid（仅供测试）")
-    return mock_id, "测试账号"
+    return mock_id, "测试账号", None
 
 
 # ── run ───────────────────────────────────────────────────────────────────────
