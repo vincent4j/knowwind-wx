@@ -1,8 +1,38 @@
 #!/usr/bin/env python3
+"""knowwind-wx — 命令行入口
+
+子命令：
+  run       启动后台服务（FastAPI，监听 localhost:8001）
+  status    检查服务运行状态
+"""
+
 import sys
-from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
-from agent.cli import main
 
-main()
+def main():
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "run"
+
+    if cmd == "run":
+        try:
+            import uvicorn
+        except ImportError:
+            print("❌ 缺少依赖，请运行安装程序重新安装", file=sys.stderr)
+            sys.exit(1)
+        uvicorn.run("server.main:app", host="127.0.0.1", port=8001)
+
+    elif cmd == "status":
+        try:
+            import httpx
+            r = httpx.get("http://localhost:8001/health", timeout=3)
+            print(f"✅ 运行中 — {r.json()}")
+        except Exception:
+            print("❌ 未运行（或无法连接 localhost:8001）")
+
+    else:
+        print(f"未知命令: {cmd}", file=sys.stderr)
+        print("用法: knowwind-wx run|status", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

@@ -13,31 +13,17 @@ push-insights.py — 推送 insights 给 KnowWind REST API
 import argparse
 import json
 import os
-import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from dotenv import load_dotenv  # noqa: E402
 from server.insights import push_insights  # noqa: E402
 
-
-def _load_config():
-    config_path = Path(__file__).parent.parent / "config.sh"
-    if not config_path.exists():
-        return
-    for line in config_path.read_text(encoding="utf-8").splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        m = re.match(r'^(?:export\s+)?(\w+)="?([^"#${]*)"?$', line)
-        if m:
-            key, val = m.group(1), m.group(2).strip().strip('"')
-            if key not in os.environ and val:
-                os.environ[key] = val
+load_dotenv(Path(__file__).parent.parent / ".env")
 
 
 def main():
-    _load_config()
 
     parser = argparse.ArgumentParser(description="推送 insights 给 KnowWind")
     parser.add_argument("--input", "-i", help="insight JSON 文件（默认读 stdin）")

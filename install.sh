@@ -150,7 +150,7 @@ if [ ! -f "$VENV_PY" ]; then
 fi
 info "安装 Python 依赖..."
 "$VENV_PIP" install --quiet --upgrade pip
-"$VENV_PIP" install --quiet httpx python-dotenv
+"$VENV_PIP" install --quiet fastapi uvicorn httpx python-dotenv
 if [ -f "$DECRYPT_DIR/requirements.txt" ]; then
   "$VENV_PIP" install --quiet -r "$DECRYPT_DIR/requirements.txt"
 fi
@@ -319,12 +319,11 @@ hr
 echo ""
 echo "下一步："
 echo ""
-echo "  1. 在 KnowWind 「平台管理 → 微信」页面获取绑定码"
-echo "  2. 运行绑定命令："
+echo "  1. 编辑配置文件（填入目标群关键词和 KnowWind 地址）："
 echo ""
-echo "       knowwind-wx bind --code <绑定码> --server <服务器地址>"
+echo "       ${INSTALL_DIR}/.env"
 echo ""
-echo "  3. 启动采集服务："
+echo "  2. 启动服务："
 echo ""
 echo "       knowwind-wx run"
 echo ""
