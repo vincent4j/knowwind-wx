@@ -8,13 +8,15 @@ set -e
 REPO_URL="https://github.com/vincent4j/knowwind-wx"
 INSTALL_DIR="$HOME/.knowwind/wx"
 DECRYPT_DIR="$INSTALL_DIR/vendor/wechat-decrypt"
+VENV_DIR="$INSTALL_DIR/.venv"
+VENV_PY="$VENV_DIR/bin/python3"
+VENV_PIP="$VENV_DIR/bin/pip"
 BIN_PATH="/usr/local/bin/knowwind-wx"
 DECRYPT_BIN="/usr/local/bin/knowwind-wx-decrypt"
-OS="$(uname -s)"
 
+OS="$(uname -s)"
 # ── 输出工具 ──────────────────────────────────────────────────────────────────
 ok()   { echo "  ✅ $1"; }
-fail() { echo "  ❌ $1"; }
 info() { echo "  →  $1"; }
 warn() { echo "  ⚠️  $1"; }
 hr()   { echo "─────────────────────────────────────────"; }
@@ -118,10 +120,13 @@ else
   git clone --quiet --recursive "$REPO_URL" "$INSTALL_DIR"
 fi
 
+info "创建Python 虚拟环境..."
+python3 -m venv "$VENV_DIR" --quiet
 info "安装 Python 依赖..."
-python3 -m pip install --quiet --upgrade httpx python-dotenv
+"$VENV_PIP" install --quiet --upgrade pip
+"$VENV_PIP" install --quiet httpx python-dotenv
 if [ -f "$DECRYPT_DIR/requirements.txt" ]; then
-  python3 -m pip install --quiet -r "$DECRYPT_DIR/requirements.txt"
+  "$VENV_PIP" install --quiet -r "$DECRYPT_DIR/requirements.txt"
 fi
 ok "knowwind-wx 就绪"
 echo ""
@@ -199,7 +204,7 @@ _install_bin() {
 # knowwind-wx 主命令
 cat > /tmp/_kw_entry <<EOF
 #!/usr/bin/env bash
-exec python3 "${INSTALL_DIR}/knowwind-wx" "\$@"
+exec "${VENV_PY}" "${INSTALL_DIR}/knowwind-wx" "\$@"
 EOF
 _install_bin /tmp/_kw_entry "$BIN_PATH"
 rm /tmp/_kw_entry
