@@ -121,7 +121,7 @@ else
 fi
 
 info "创建Python 虚拟环境..."
-python3 -m venv "$VENV_DIR" --quiet
+python3 -m venv "$VENV_DIR"
 info "安装 Python 依赖..."
 "$VENV_PIP" install --quiet --upgrade pip
 "$VENV_PIP" install --quiet httpx python-dotenv
